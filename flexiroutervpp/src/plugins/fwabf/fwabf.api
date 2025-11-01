@@ -1,0 +1,151 @@
+/* Hey Emacs use -*- mode: C -*- */
+/*
+ * Copyright (c) 2016 Cisco and/or its affiliates.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ *  Copyright (C) 2020 flexiWAN Ltd.
+ *  This file is part of the FWABF plugin.
+ *  The FWABF plugin is fork of the FDIO VPP ABF plugin.
+ *  It enhances ABF with functionality required for Flexiwan Multi-Link feature.
+ *  For more details see official documentation on the Flexiwan Multi-Link.
+ *
+ *  adding_fwabf_vpp_apis - Adding VPP VPI to dump the policy, label and link
+ *  states and statistic values.
+ */
+
+/** \file
+    This file defines the vpp control-plane API messages
+    used to control the ABF plugin
+*/
+
+option version = "1.0.0";
+
+
+/* #ifdef FLEXIWAN_FEATURE - adding_fwabf_vpp_apis */
+import "vnet/interface_types.api";
+
+/** \brief Dump the policy states and statistics
+    @param client_index - opaque cookie to identify the sender
+    @param context - sender context, to match reply w/ request
+ */
+define fwabf_policy_dump
+{
+  u32 client_index;
+  u32 context;
+};
+
+typedef fwabf_policy_group
+{
+  u8 group_alg;
+  u32 label_count;
+  /* FWABF_MAX_PER_POLICY_GROUP_LABELS = 64.
+     It is defined in fwabf_api.c.
+
+     if the label_count is > 64 then only the first 64 entries shall be
+     returned as response. The truncation can be detected on receiving the
+     response by checking if the label_count is > 64.
+     */
+  u32 labels[64];
+};
+
+/** \brief policy state and statistic response structure
+  */
+define fwabf_policy_details
+{
+  u32 context;
+  u32 id;
+  u32 acl_index;
+  u32 counter_matched;
+  u32 counter_applied;
+  u32 counter_fallback;
+  u32 counter_dropped;
+  bool override_default_route;
+  u8 action_fallback;
+  u8 action_alg;
+  u32 group_count;
+  vl_api_fwabf_policy_group_t groups[group_count];
+};
+
+/** \brief Dump the label states and statistics
+    @param client_index - opaque cookie to identify the sender
+    @param context - sender context, to match reply w/ request
+ */
+define fwabf_label_dump
+{
+  u32 client_index;
+  u32 context;
+};
+
+/** \brief label state and statistic response structure
+  */
+define fwabf_label_details
+{
+  u32 context;
+  u32 label;
+  u32 hits;
+  u32 misses;
+  u32 enforced_hits;
+  u32 enforced_misses;
+  u32 quality_hits;
+  u32 quality_reduced_hits;
+  u32 sw_if_index_count;
+  vl_api_interface_index_t sw_if_indexes[sw_if_index_count];
+};
+
+/** \brief Dump the link states and statistics
+    @param client_index - opaque cookie to identify the sender
+    @param context - sender context, to match reply w/ request
+ */
+define fwabf_link_dump
+{
+  u32 client_index;
+  u32 context;
+};
+
+/** \brief link state and statistic response structure
+  */
+define fwabf_link_details
+{
+  u32 context;
+  u32 label;
+  u32 loss;
+  u32 delay;
+  u32 jitter;
+  u32 dpoi_index;
+  u32 path_list_index;
+  vl_api_interface_index_t sw_if_index;
+};
+
+/** \brief Reset all the label statistic values
+    @param client_index - opaque cookie to identify the sender
+    @param context - sender context, to match reply w/ request
+ */
+autoreply define fwabf_label_reset_stats
+{
+  u32 client_index;
+  u32 context;
+};
+
+/** \brief Reset all the policy statistic values
+    @param client_index - opaque cookie to identify the sender
+    @param context - sender context, to match reply w/ request
+ */
+autoreply define fwabf_policy_reset_stats
+{
+  u32 client_index;
+  u32 context;
+};
+
+/* #endif FLEXIWAN_FEATURE - adding_fwabf_vpp_apis */

@@ -1,0 +1,4 @@
+Welcome to flexiEdge!
+
+Run `sudo flexiwan-agent --help` to explore local management commands.
+Visit https://docs.flexiwan.com/ for product documentation.

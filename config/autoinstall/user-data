@@ -1,0 +1,43 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: flexiedge
+    username: flexiwan
+    password: "$6$Lvp4gr0ge.fb8y5O$J7Xj/OTCNjcQPdIFh3AOSqXEts91MV9eK/pdz1zKmDudY93ddHbzrT39eIDLBlFACdylXpyLI.YDOgLZOmVWd."
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+    variant: ''
+  timezone: UTC
+  ssh:
+    install-server: true
+  storage:
+    layout:
+      name: direct
+  updates: security
+  packages:
+    - git
+    - python3
+    - python3-pip
+    - python3-venv
+    - python3-setuptools
+    - python3-wheel
+    - curl
+    - jq
+    - net-tools
+    - ifupdown2
+    - strongswan
+    - openvswitch-switch
+    - lsof
+    - tcpdump
+    - build-essential
+    - python3-dev
+    - libffi-dev
+    - libssl-dev
+    - pkg-config
+  user-data:
+    disable_root: true
+  late-commands:
+    - curtin in-target --target=/target -- chmod +x /cdrom/nocloud/setup-flexiwan.sh
+    - curtin in-target --target=/target -- /cdrom/nocloud/setup-flexiwan.sh

@@ -1,0 +1,6 @@
+chart-dirs:
+  - ./flexEdge/Chart
+remote: flexiedge
+target-branch: master
+debug: true
+check-version-increment: true
