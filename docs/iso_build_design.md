@@ -62,15 +62,19 @@ The autoinstall profile provisions an Ubuntu Server instance with the following 
 {
   "generated_at": "2025-11-01T00:00:00Z",
   "flexiedge_version": "<requested version>",
-  "flexiagent_ref": "v6.5.19",
+  "flexiagent_ref": "v6.6.0",
   "ubuntu_base_url": "https://releases.ubuntu.com/20.04.6/...",
   "repositories": [
-    {"name": "flexiagent", "ref": "v6.5.19", "commit": "<sha>", "archive": "flexiagent.tar.gz", "remote": "https://github.com/Aikonlee/flexiagent.git"}
+    {"name": "flexiagent", "ref": "v6.6.0", "commit": "<sha>", "archive": "flexiagent.tar.gz", "remote": "https://github.com/Aikonlee/flexiagent.git"},
+    {"name": "flexirouter", "ref": "v21.01.03", "commit": "<sha>", "archive": "flexirouter.tar.gz", "remote": "https://github.com/Aikonlee/flexirouter.git"},
+    {"name": "flexiroutervpp", "ref": "v26.02-rc0", "commit": "<sha>", "archive": "flexiroutervpp.tar.gz", "remote": "https://github.com/Aikonlee/flexiroutervpp.git"},
+    {"name": "flexiroutersb", "ref": "v21.01.02.09.13-rc0", "commit": "<sha>", "archive": "flexiroutersb.tar.gz", "remote": "https://github.com/Aikonlee/flexiroutersb.git"},
+    {"name": "flexiwancharts", "ref": "", "commit": "", "archive": "", "remote": "https://github.com/Aikonlee/flexiwancharts.git"}
   ]
 }
 ```
 
-When the installer runs without a bundled archive, `setup-flexiwan.sh` falls back to cloning the repository from its remote URL (checking out the pinned `ref` such as `FLEXIAGENT_REF=v6.5.19` when configured). The manifest is also copied into `/etc/flexiwan/build-info.json` on the installed system for audit purposes.
+When the installer runs without a bundled archive, `setup-flexiwan.sh` falls back to cloning the repository from its remote URL (checking out the pinned `ref` when configured: `FLEXIAGENT_REF=v6.6.0`, `flexirouter=v21.01.03`, `flexiroutervpp=v26.02-rc0`, and `flexiroutersb=v21.01.02.09.13-rc0`; `flexiwancharts` remains unpinned/TBD). The manifest is also copied into `/etc/flexiwan/build-info.json` on the installed system for audit purposes. Note that the target flexiManage baseline remains `6.5.1` while flexiEdge and `flexiagent` are `6.6.0`, so compatibility must be validated by QEMU/E2E before release (see `docs/baseline-6.5.x.md`).
 
 ## Recovery workflow
 
@@ -80,7 +84,7 @@ When the installer runs without a bundled archive, `setup-flexiwan.sh` falls bac
 
 ## Validation & future work
 
-- Run `scripts/verify-iso.sh --iso tests/fixtures/flexiEdge.focal.6.5.19.iso --manifest tests/fixtures/manifest.json` (which syntax-checks every shell script under `scripts/` and `config/scripts/` with `bash -n`) before committing changes.
+- Run `scripts/verify-iso.sh --iso tests/fixtures/flexiEdge.focal.6.6.0.iso --manifest tests/fixtures/manifest.json` (which syntax-checks every shell script under `scripts/` and `config/scripts/` with `bash -n`) before committing changes.
 - Optionally enable `shellcheck` for deeper linting.
 - The current flow depends on the default Ubuntu 20.04 live-server ISO; update `--ubuntu-url` to switch bases (e.g., Ubuntu 22.04).
 - Additional components such as VPP dataplane tuning, FRR templates, or hardware-specific drivers can be injected by placing assets under `config/scripts/` and extending `setup-flexiwan.sh`.

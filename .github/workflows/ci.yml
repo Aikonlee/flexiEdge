@@ -18,15 +18,15 @@ jobs:
           # scripts/verify-iso.sh runs the authoritative per-file bash -n loop
           # across scripts/ and config/scripts/ before validating the fixture.
           ./scripts/verify-iso.sh \
-            --iso tests/fixtures/flexiEdge.focal.6.5.19.iso \
+            --iso tests/fixtures/flexiEdge.focal.6.6.0.iso \
             --manifest tests/fixtures/manifest.json
 
       - name: Verify checksum mismatch rejection
         run: |
           if ./scripts/verify-iso.sh \
             --skip-shell-check \
-            --iso tests/fixtures/flexiEdge.focal.6.5.19.iso \
-            --sha256 tests/fixtures/flexiEdge.focal.6.5.19.iso.mismatch.sha256 \
+            --iso tests/fixtures/flexiEdge.focal.6.6.0.iso \
+            --sha256 tests/fixtures/flexiEdge.focal.6.6.0.iso.mismatch.sha256 \
             --manifest tests/fixtures/manifest.json; then
             echo "Expected verify-iso.sh to fail on non-exact checksum entry" >&2
             exit 1

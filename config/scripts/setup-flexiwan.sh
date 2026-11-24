@@ -35,8 +35,9 @@ SYSTEMD_UNIT="/etc/systemd/system/flexiwan-agent.service"
 WRAPPER_BIN="$BIN_DIR/flexiwan-agent"
 PYTHON_BIN="/usr/bin/python3"
 
-# Pinned primary flexiagent release ref; companion components remain TBD (see docs/baseline-6.5.x.md).
-FLEXIAGENT_REF="${FLEXIAGENT_REF:-v6.5.19}"
+# Pinned flexiagent release ref (default v6.6.0); companion pins are defined in the default
+# repository list below and in docs/baseline-6.5.x.md (flexiwancharts remains TBD).
+FLEXIAGENT_REF="${FLEXIAGENT_REF:-v6.6.0}"
 
 RECONFIGURE=0
 
@@ -225,15 +226,17 @@ stage_repositories() {
   else
     echo "[setup-flexiwan] No manifest found, attempting default repository list"
     # Upstream flexiWAN repositories live on GitLab; our maintained mirrors are on GitHub.
-    # Only flexiagent is pinned to FLEXIAGENT_REF (v6.5.19); other components remain TBD.
+    # Confirmed pins (see docs/baseline-6.5.x.md): flexiagent (FLEXIAGENT_REF, default v6.6.0),
+    # flexirouter (v21.01.03), flexiroutervpp (v26.02-rc0), and flexiroutersb (v21.01.02.09.13-rc0).
+    # flexiwancharts remains unpinned (TBD).
     while IFS='|' read -r name url ref; do
       [[ -z "$name" ]] && continue
       stage_repository "$name" "" "$url" "$ref"
     done <<EOF
 flexiagent|https://github.com/Aikonlee/flexiagent.git|${FLEXIAGENT_REF}
-flexirouter|https://github.com/Aikonlee/flexirouter.git|
-flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|
-flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|
+flexirouter|https://github.com/Aikonlee/flexirouter.git|v21.01.03
+flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|v26.02-rc0
+flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|v21.01.02.09.13-rc0
 flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|
 EOF
   fi

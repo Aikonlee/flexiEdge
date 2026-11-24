@@ -11,8 +11,8 @@ CONFIG_DIR="$ROOT_DIR/config"
 BUNDLE_DIR="$SEED_DIR/repos"
 
 UBUNTU_URL_DEFAULT="https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd64.iso"
-FLEXIEDGE_VERSION_DEFAULT="6.5.19"
-FLEXIAGENT_REF_DEFAULT="v6.5.19"
+FLEXIEDGE_VERSION_DEFAULT="6.6.0"
+FLEXIAGENT_REF_DEFAULT="v6.6.0"
 ISO_LABEL_DEFAULT="FLEXIEDGE"
 
 usage() {
@@ -21,8 +21,8 @@ Usage: scripts/build_iso.sh [options]
 
 Options:
   --ubuntu-url URL        Override base Ubuntu live server ISO URL.
-  --flexiwan-version VER  Version string used for artefact naming (default: 6.5.19).
-  --flexiagent-ref REF    Pinned git tag/ref for flexiagent (default: v6.5.19; env: FLEXIAGENT_REF).
+  --flexiwan-version VER  Version string used for artefact naming (default: 6.6.0).
+  --flexiagent-ref REF    Pinned git tag/ref for flexiagent (default: v6.6.0; env: FLEXIAGENT_REF).
   --output FILE           Override output ISO path (default: dist/flexiEdge.focal.<VER>.iso).
   --skip-cache            Do not embed offline package cache even if available.
   --keep-workdir          Do not remove staging directory after build (for debugging).
@@ -69,14 +69,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Upstream flexiWAN repositories live on GitLab; our maintained mirrors are on GitHub.
-# Only flexiagent is pinned to FLEXIAGENT_REF (v6.5.19); flexirouter, flexiroutervpp,
-# flexiroutersb, and flexiwancharts remain unpinned (TBD) until 6.5.x pins are confirmed
-# (see docs/baseline-6.5.x.md).
+# Confirmed pins (see docs/baseline-6.5.x.md): flexiagent ($FLEXIAGENT_REF, default v6.6.0),
+# flexirouter (v21.01.03), flexiroutervpp (v26.02-rc0), and flexiroutersb (v21.01.02.09.13-rc0).
+# flexiwancharts remains unpinned (TBD).
 declare -a REPO_SOURCES=(
   "flexiagent|https://github.com/Aikonlee/flexiagent.git|$FLEXIAGENT_REF"
-  "flexirouter|https://github.com/Aikonlee/flexirouter.git|"
-  "flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|"
-  "flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|"
+  "flexirouter|https://github.com/Aikonlee/flexirouter.git|v21.01.03"
+  "flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|v26.02-rc0"
+  "flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|v21.01.02.09.13-rc0"
   "flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|"
 )
 
