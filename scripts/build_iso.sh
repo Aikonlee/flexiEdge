@@ -70,14 +70,15 @@ done
 
 # Upstream flexiWAN repositories live on GitLab; our maintained mirrors are on GitHub.
 # Confirmed pins (see docs/baseline-6.5.x.md): flexiagent ($FLEXIAGENT_REF, default v6.6.0),
-# flexirouter (v21.01.03), flexiroutervpp (v26.02-rc0), and flexiroutersb (v21.01.02.09.13-rc0).
-# flexiwancharts remains unpinned (TBD).
+# flexirouter (v21.01.03), flexiroutervpp (v26.02-rc0), flexiroutersb (v21.01.02.09.13-rc0),
+# and flexiwancharts (pinned to the master branch because no tags exist; branch refs are
+# mutable, so the resolved commit SHA is recorded in manifest.json at build time for audit).
 declare -a REPO_SOURCES=(
   "flexiagent|https://github.com/Aikonlee/flexiagent.git|$FLEXIAGENT_REF"
   "flexirouter|https://github.com/Aikonlee/flexirouter.git|v21.01.03"
   "flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|v26.02-rc0"
   "flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|v21.01.02.09.13-rc0"
-  "flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|"
+  "flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|master"
 )
 
 [[ -n "$OUTPUT" ]] || OUTPUT="$DIST_DIR/flexiEdge.focal.$FLEXI_VERSION.iso"
@@ -135,18 +136,28 @@ bundle_repo_snapshot() {
         exit 1
       fi
       remote_url=$(git -C "$source_dir" remote get-url origin 2>/dev/null || echo "$url")
-      if ! git -C "$source_dir" rev-parse --verify --quiet "${ref}^{commit}" >/dev/null; then
-        echo "[build_iso] Ref '$ref' not found locally in '$name'; fetching tag from origin without modifying working tree"
-        if ! git -C "$source_dir" fetch --no-tags origin "refs/tags/${ref}:refs/tags/${ref}"; then
-          git -C "$source_dir" fetch --tags origin
+      commit=$(git -C "$source_dir" rev-parse --verify --quiet "${ref}^{commit}" \
+        || git -C "$source_dir" rev-parse --verify --quiet "refs/remotes/origin/${ref}^{commit}" \
+        || true)
+      if [[ -z "$commit" ]]; then
+        echo "[build_iso] Ref '$ref' not found locally in '$name'; fetching from origin without modifying working tree"
+        if ! git -C "$source_dir" fetch --no-tags origin "refs/heads/${ref}:refs/remotes/origin/${ref}" 2>/dev/null; then
+          if ! git -C "$source_dir" fetch --no-tags origin "refs/tags/${ref}:refs/tags/${ref}" 2>/dev/null; then
+            if ! git -C "$source_dir" fetch --no-tags origin "${ref}:refs/remotes/origin/${ref}" 2>/dev/null; then
+              git -C "$source_dir" fetch --tags origin || true
+            fi
+          fi
         fi
+        commit=$(git -C "$source_dir" rev-parse --verify --quiet "${ref}^{commit}" \
+          || git -C "$source_dir" rev-parse --verify --quiet "refs/remotes/origin/${ref}^{commit}" \
+          || true)
       fi
-      if ! commit=$(git -C "$source_dir" rev-parse --verify --quiet "${ref}^{commit}"); then
+      if [[ -z "$commit" ]]; then
         echo "[build_iso] ERROR: Unable to resolve pinned ref '$ref' in '$source_dir'" >&2
         exit 1
       fi
       echo "[build_iso] Archiving local repository '$name' at pinned ref '$ref' (commit $commit)"
-      git -C "$source_dir" archive --format=tar.gz --output="${archive}.tmp" "$ref"
+      git -C "$source_dir" archive --format=tar.gz --output="${archive}.tmp" "$commit"
       mv "${archive}.tmp" "$archive"
       archive_name="$(basename "$archive")"
     else
@@ -156,7 +167,7 @@ bundle_repo_snapshot() {
       else
         echo "[build_iso] git not found; omitting metadata for '$name'"
       fi
-      echo "[build_iso] Bundling local repository '$name' (unpinned/TBD, commit ${commit:-unknown})"
+      echo "[build_iso] Bundling local repository '$name' (unpinned, commit ${commit:-unknown})"
       tar -czf "${archive}.tmp" --exclude .git --exclude .github --exclude .gitlab --exclude .mypy_cache \
         -C "$source_dir" .
       mv "${archive}.tmp" "$archive"

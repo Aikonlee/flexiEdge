@@ -8,7 +8,7 @@ This document records the target **flexiEdge 6.6.0** baseline for the flexiEdge 
 
 Upstream flexiWAN repositories are hosted on GitLab; our maintained fallback mirrors are hosted on GitHub under `https://github.com/Aikonlee/<repo>.git`.
 
-> **Pin verification note:** The four pinned tags below (`flexiagent`, `flexiRouterVPP`, `flexiRouterSB`, and `flexiRouter`) are **user-confirmed and verified to exist on GitHub**. `flexiWANCharts` has no confirmed pin yet and remains unpinned (TBD).
+> **Pin verification note:** All five component pins below are **user-confirmed and verified to exist on GitHub**: `flexiagent`, `flexiRouterVPP`, `flexiRouterSB`, and `flexiRouter` are pinned to tags, while `flexiWANCharts` is pinned to the `master` branch (no tags; current remote HEAD `acc9f21abc1f09792f5a927254004de556f1e1d0`, 2023-06-28). Because a branch ref is mutable, reproducibility relies on the resolved commit SHA recorded in `manifest.json` at build time rather than the ref name.
 
 | Component | Repo Directory | Mirror Remote | Target Pin / Branch | Status |
 | --- | --- | --- | --- | --- |
@@ -16,11 +16,11 @@ Upstream flexiWAN repositories are hosted on GitLab; our maintained fallback mir
 | `flexiRouterVPP` | `flexiroutervpp` | `https://github.com/Aikonlee/flexiroutervpp.git` | **`v26.02-rc0`** | **User-confirmed & tag-verified; pinned & enforced** in `scripts/build_iso.sh` (`REPO_SOURCES`) and `config/scripts/setup-flexiwan.sh` |
 | `flexiRouterSB` | `flexiroutersb` | `https://github.com/Aikonlee/flexiroutersb.git` | **`v21.01.02.09.13-rc0`** | **User-confirmed & tag-verified; pinned & enforced** in `scripts/build_iso.sh` (`REPO_SOURCES`) and `config/scripts/setup-flexiwan.sh` |
 | `flexiRouter` | `flexirouter` | `https://github.com/Aikonlee/flexirouter.git` | **`v21.01.03`** | **User-confirmed & tag-verified; pinned & enforced** in `scripts/build_iso.sh` (`REPO_SOURCES`) and `config/scripts/setup-flexiwan.sh` |
-| `flexiWANCharts` | `flexiwancharts` | `https://github.com/Aikonlee/flexiwancharts.git` | **TBD (unpinned)** | No pin provided yet; left unpinned (`ref: ""`) until confirmed |
+| `flexiWANCharts` | `flexiwancharts` | `https://github.com/Aikonlee/flexiwancharts.git` | **`master`** (branch; HEAD `acc9f21abc1f09792f5a927254004de556f1e1d0`, 2023-06-28) | **User-confirmed; charts pinned to `master` branch (no tags)** in `scripts/build_iso.sh` (`REPO_SOURCES`) and `config/scripts/setup-flexiwan.sh`; build records the resolved commit SHA in `manifest.json` for audit (branch ref is mutable, so reproducibility relies on the recorded commit SHA, not the ref name) |
 
 ### Open Decisions
 
-1. **`flexiWANCharts` pin**: Confirm the exact tag/branch or commit SHA for `flexiWANCharts` to record in `scripts/build_iso.sh`, `config/scripts/setup-flexiwan.sh`, and `manifest.json` during release builds.
+1. **flexiManage `6.5.1` ↔ flexiEdge / `flexiagent` `6.6.0` compatibility**: Protocol, registration, and tunnel compatibility between the flexiManage `6.5.1` baseline and flexiEdge / `flexiagent` `6.6.0` (with `flexiRouterVPP` / `flexiRouterSB` on `-rc0` pre-release tags) is not yet proven and must be validated in QEMU/E2E before release.
 
 ## Compatibility Matrix (flexiEdge ↔ flexiManage)
 
@@ -28,7 +28,7 @@ Upstream flexiWAN repositories are hosted on GitLab; our maintained fallback mir
 
 | Track | flexiManage Baseline | flexiEdge ISO / Agent Version | Companion Components (`VPP` / `SB` / `Router` / `Charts`) | Validation State |
 | --- | --- | --- | --- | --- |
-| **6.6.0 (Target)** | flexiManage **6.5.1** (production baseline `9a1125a`, `backend/package.json` `6.5.1`) | ISO **`6.6.0`** / `flexiagent` **`v6.6.0`** | `flexiRouterVPP` `v26.02-rc0` / `flexiRouterSB` `v21.01.02.09.13-rc0` / `flexiRouter` `v21.01.03` / `flexiWANCharts` TBD (unpinned) | 4 of 5 component pins user-confirmed & tag-verified (Charts TBD); flexiManage (`6.5.1`) ↔ flexiEdge/agent (`6.6.0`) protocol & tunnel compatibility **unproven — must be validated in QEMU/E2E before release** |
+| **6.6.0 (Target)** | flexiManage **6.5.1** (production baseline `9a1125a`, `backend/package.json` `6.5.1`) | ISO **`6.6.0`** / `flexiagent` **`v6.6.0`** | `flexiRouterVPP` `v26.02-rc0` / `flexiRouterSB` `v21.01.02.09.13-rc0` / `flexiRouter` `v21.01.03` / `flexiWANCharts` `master` (branch, no tags; HEAD `acc9f21abc1f09792f5a927254004de556f1e1d0`) | All 5 component pins user-confirmed & recorded (4 tags + `flexiWANCharts` pinned to `master` branch with resolved commit SHA recorded at build time for audit); flexiManage (`6.5.1`) ↔ flexiEdge/agent (`6.6.0`) protocol & tunnel compatibility **unproven — must be validated in QEMU/E2E before release** |
 | **6.4.x (Legacy / Upstream Docs Index)** | flexiManage `6.4.30` (docs index `6.4.1`) | `6.4.32` (previous builder default) | Legacy 6.4.x | Superseded by 6.6.0 baseline |
 
 ## Security & Artifact Notes

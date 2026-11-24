@@ -23,13 +23,13 @@ This installs ISO authoring tools (`xorriso`, `cloud-image-utils`, `squashfs-too
 Key options:
 
 - `--flexiwan-version` — version string embedded in filenames and metadata (defaults to `6.6.0`).
-- `--flexiagent-ref` — pinned git tag/ref for `flexiagent` (defaults to `v6.6.0`; also configurable via `FLEXIAGENT_REF`). Companion pins are `flexirouter` (`v21.01.03`), `flexiroutervpp` (`v26.02-rc0`), and `flexiroutersb` (`v21.01.02.09.13-rc0`); `flexiwancharts` remains unpinned (TBD) per `docs/baseline-6.5.x.md`.
+- `--flexiagent-ref` — pinned git tag/ref for `flexiagent` (defaults to `v6.6.0`; also configurable via `FLEXIAGENT_REF`). Companion pins are `flexirouter` (`v21.01.03`), `flexiroutervpp` (`v26.02-rc0`), `flexiroutersb` (`v21.01.02.09.13-rc0`), and `flexiwancharts` (charts pinned to `master` branch (no tags); build records the resolved commit SHA for audit — because a branch ref is mutable, reproducibility relies on the recorded commit SHA, not the ref name) per `docs/baseline-6.5.x.md`.
 - `--ubuntu-url` — alternate base Ubuntu live-server ISO.
 - `--output` — custom output path (defaults to `dist/flexiEdge.focal.<version>.iso`).
 - `--skip-cache` — avoid packaging local `.deb` files from `cache/packages/`.
 - `--keep-workdir` — preserve `.work/staging/` for debugging and post-build manifest verification.
 
-The build output (`.iso` + `.sha256`) is written to the `dist/` directory. Local clones of the flexiWAN repositories are automatically archived into the ISO (pinned repos — `flexiagent` at `FLEXIAGENT_REF`, `flexirouter` at `v21.01.03`, `flexiroutervpp` at `v26.02-rc0`, and `flexiroutersb` at `v21.01.02.09.13-rc0` — are archived via `git archive` without mutating the working tree; `flexiwancharts` remains unpinned/TBD) and recorded in `nocloud/repos/manifest.json`. The flexiManage baseline remains `6.5.1` while flexiEdge and `flexiagent` are `6.6.0`; compatibility must be validated by QEMU/E2E before release (see `docs/baseline-6.5.x.md`).
+The build output (`.iso` + `.sha256`) is written to the `dist/` directory. Local clones of the flexiWAN repositories are automatically archived into the ISO (all 5 pinned repos — `flexiagent` at `FLEXIAGENT_REF`, `flexirouter` at `v21.01.03`, `flexiroutervpp` at `v26.02-rc0`, `flexiroutersb` at `v21.01.02.09.13-rc0`, and `flexiwancharts` pinned to `master` branch (no tags) — are archived via `git archive` without mutating the working tree) and recorded with their resolved commit SHAs in `nocloud/repos/manifest.json` for audit (because a branch ref is mutable, reproducibility for `flexiwancharts` relies on the recorded commit SHA, not the ref name). The flexiManage baseline remains `6.5.1` while flexiEdge and `flexiagent` are `6.6.0`; compatibility must be validated by QEMU/E2E before release (see `docs/baseline-6.5.x.md`).
 
 ## Verifying build artifacts
 

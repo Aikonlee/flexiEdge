@@ -34,8 +34,8 @@
     },
     {
       "name": "flexiwancharts",
-      "ref": "",
-      "commit": "",
+      "ref": "master",
+      "commit": "acc9f21abc1f09792f5a927254004de556f1e1d0",
       "archive": "",
       "remote": "https://github.com/Aikonlee/flexiwancharts.git"
     }
