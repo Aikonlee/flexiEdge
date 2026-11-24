@@ -35,6 +35,9 @@ SYSTEMD_UNIT="/etc/systemd/system/flexiwan-agent.service"
 WRAPPER_BIN="$BIN_DIR/flexiwan-agent"
 PYTHON_BIN="/usr/bin/python3"
 
+# Pinned primary flexiagent release ref; companion components remain TBD (see docs/baseline-6.5.x.md).
+FLEXIAGENT_REF="${FLEXIAGENT_REF:-v6.5.19}"
+
 RECONFIGURE=0
 
 while [[ $# -gt 0 ]]; do
@@ -156,7 +159,8 @@ for repo in repos:
     name = repo.get("name", "")
     archive = repo.get("archive", "")
     remote = repo.get("remote", "")
-    print(f"{name}|{archive}|{remote}")
+    ref = repo.get("ref", "")
+    print(f"{name}|{archive}|{remote}|{ref}")
 PY
 }
 
@@ -164,10 +168,15 @@ stage_repository() {
   local name="$1"
   local archive="$2"
   local remote="$3"
+  local ref="${4:-}"
   local dest="$SRC_ROOT/$name"
 
+  if [[ -z "$ref" && "$name" == "flexiagent" ]]; then
+    ref="$FLEXIAGENT_REF"
+  fi
+
   if [[ -n "$archive" && -f "$REPO_BUNDLE/$archive" ]]; then
-    echo "[setup-flexiwan] Extracting bundled repo $name"
+    echo "[setup-flexiwan] Extracting bundled repo $name${ref:+ (ref $ref)}"
     rm -rf "$dest"
     mkdir -p "$dest"
     tar -xzf "$REPO_BUNDLE/$archive" -C "$dest" --strip-components=0
@@ -177,13 +186,26 @@ stage_repository() {
       return
     fi
     if [[ -d "$dest/.git" ]]; then
-      echo "[setup-flexiwan] Refreshing existing checkout $name"
+      echo "[setup-flexiwan] Refreshing existing checkout $name${ref:+ (ref $ref)}"
       git -C "$dest" fetch --all --tags
-      git -C "$dest" reset --hard origin/HEAD 2>/dev/null || true
+      if [[ -n "$ref" ]]; then
+        git -C "$dest" checkout --force "$ref"
+      else
+        git -C "$dest" reset --hard origin/HEAD 2>/dev/null || true
+      fi
     else
-      echo "[setup-flexiwan] Cloning $remote"
       rm -rf "$dest"
-      git clone "$remote" "$dest"
+      if [[ -n "$ref" ]]; then
+        echo "[setup-flexiwan] Cloning $remote at pinned ref $ref"
+        if ! git clone --branch "$ref" "$remote" "$dest"; then
+          rm -rf "$dest"
+          git clone "$remote" "$dest"
+          git -C "$dest" checkout --force "$ref"
+        fi
+      else
+        echo "[setup-flexiwan] Cloning $remote (unpinned/TBD)"
+        git clone "$remote" "$dest"
+      fi
     fi
   else
     echo "[setup-flexiwan] No archive or remote for $name"
@@ -196,21 +218,23 @@ stage_repository() {
 stage_repositories() {
   if [[ -f "$MANIFEST_FILE" ]]; then
     echo "[setup-flexiwan] Staging repositories from manifest"
-    while IFS='|' read -r name archive remote; do
+    while IFS='|' read -r name archive remote ref; do
       [[ -z "$name" ]] && continue
-      stage_repository "$name" "$archive" "$remote"
+      stage_repository "$name" "$archive" "$remote" "$ref"
     done < <(parse_manifest "$MANIFEST_FILE")
   else
     echo "[setup-flexiwan] No manifest found, attempting default repository list"
-    while IFS='|' read -r name url; do
+    # Upstream flexiWAN repositories live on GitLab; our maintained mirrors are on GitHub.
+    # Only flexiagent is pinned to FLEXIAGENT_REF (v6.5.19); other components remain TBD.
+    while IFS='|' read -r name url ref; do
       [[ -z "$name" ]] && continue
-      stage_repository "$name" "" "$url"
-    done <<'EOF'
-flexiagent|https://gitlab.com/aikonlee/flexiagent.git
-flexirouter|https://gitlab.com/aikonlee/flexirouter.git
-flexiroutervpp|https://gitlab.com/aikonlee/flexiroutervpp.git
-flexiroutersb|https://gitlab.com/aikonlee/flexiroutersb.git
-flexiwancharts|https://gitlab.com/aikonlee/flexiwancharts.git
+      stage_repository "$name" "" "$url" "$ref"
+    done <<EOF
+flexiagent|https://github.com/Aikonlee/flexiagent.git|${FLEXIAGENT_REF}
+flexirouter|https://github.com/Aikonlee/flexirouter.git|
+flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|
+flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|
+flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|
 EOF
   fi
 }

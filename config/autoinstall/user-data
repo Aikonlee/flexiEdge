@@ -38,6 +38,9 @@ autoinstall:
     - pkg-config
   user-data:
     disable_root: true
+    chpasswd:
+      expire: true
   late-commands:
+    - curtin in-target --target=/target -- chage -d 0 flexiwan
     - curtin in-target --target=/target -- chmod +x /cdrom/nocloud/setup-flexiwan.sh
     - curtin in-target --target=/target -- /cdrom/nocloud/setup-flexiwan.sh

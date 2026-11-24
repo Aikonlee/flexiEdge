@@ -48,7 +48,7 @@ This repository assembles a fully automated flexiEdge installation ISO derived f
 The autoinstall profile provisions an Ubuntu Server instance with the following characteristics:
 
 - Hostname: `flexiedge`
-- Admin user: `flexiwan` (password prompt defaults to `flexiwan`, change on first login)
+- Admin user: `flexiwan` (bootstrap password `flexiwan` is expired via cloud-init `chpasswd: { expire: true }` and `chage -d 0 flexiwan` so a password change is enforced on first login)
 - Timezone: UTC, locale and keyboard set to US English.
 - SSH server enabled by default.
 - Package set includes Git, Python build tooling, StrongSwan, Open vSwitch, and utilities required by `flexiagent`.
@@ -62,14 +62,15 @@ The autoinstall profile provisions an Ubuntu Server instance with the following 
 {
   "generated_at": "2025-11-01T00:00:00Z",
   "flexiedge_version": "<requested version>",
+  "flexiagent_ref": "v6.5.19",
   "ubuntu_base_url": "https://releases.ubuntu.com/20.04.6/...",
   "repositories": [
-    {"name": "flexiagent", "commit": "<sha>", "archive": "flexiagent.tar.gz", "remote": "https://gitlab.com/aikonlee/flexiagent.git"}
+    {"name": "flexiagent", "ref": "v6.5.19", "commit": "<sha>", "archive": "flexiagent.tar.gz", "remote": "https://github.com/Aikonlee/flexiagent.git"}
   ]
 }
 ```
 
-When the installer runs without a bundled archive, `setup-flexiwan.sh` falls back to cloning the repository from its remote URL. The manifest is also copied into `/etc/flexiwan/build-info.json` on the installed system for audit purposes.
+When the installer runs without a bundled archive, `setup-flexiwan.sh` falls back to cloning the repository from its remote URL (checking out the pinned `ref` such as `FLEXIAGENT_REF=v6.5.19` when configured). The manifest is also copied into `/etc/flexiwan/build-info.json` on the installed system for audit purposes.
 
 ## Recovery workflow
 
@@ -79,7 +80,7 @@ When the installer runs without a bundled archive, `setup-flexiwan.sh` falls bac
 
 ## Validation & future work
 
-- Run `bash -n scripts/build_iso.sh config/scripts/setup-flexiwan.sh` before committing changes.
+- Run `scripts/verify-iso.sh --iso tests/fixtures/flexiEdge.focal.6.5.19.iso --manifest tests/fixtures/manifest.json` (which syntax-checks every shell script under `scripts/` and `config/scripts/` with `bash -n`) before committing changes.
 - Optionally enable `shellcheck` for deeper linting.
 - The current flow depends on the default Ubuntu 20.04 live-server ISO; update `--ubuntu-url` to switch bases (e.g., Ubuntu 22.04).
 - Additional components such as VPP dataplane tuning, FRR templates, or hardware-specific drivers can be injected by placing assets under `config/scripts/` and extending `setup-flexiwan.sh`.

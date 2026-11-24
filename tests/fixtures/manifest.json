@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-11-24T00:00:00Z",
+  "flexiedge_version": "6.5.19",
+  "flexiagent_ref": "v6.5.19",
+  "ubuntu_base_url": "https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd64.iso",
+  "repositories": [
+    {
+      "name": "flexiagent",
+      "ref": "v6.5.19",
+      "commit": "",
+      "archive": "flexiagent.tar.gz",
+      "remote": "https://github.com/Aikonlee/flexiagent.git"
+    },
+    {
+      "name": "flexirouter",
+      "ref": "",
+      "commit": "",
+      "archive": "",
+      "remote": "https://github.com/Aikonlee/flexirouter.git"
+    },
+    {
+      "name": "flexiroutervpp",
+      "ref": "",
+      "commit": "",
+      "archive": "",
+      "remote": "https://github.com/Aikonlee/flexiroutervpp.git"
+    },
+    {
+      "name": "flexiroutersb",
+      "ref": "",
+      "commit": "",
+      "archive": "",
+      "remote": "https://github.com/Aikonlee/flexiroutersb.git"
+    },
+    {
+      "name": "flexiwancharts",
+      "ref": "",
+      "commit": "",
+      "archive": "",
+      "remote": "https://github.com/Aikonlee/flexiwancharts.git"
+    }
+  ]
+}
