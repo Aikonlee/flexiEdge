@@ -2,6 +2,12 @@
 
 This project assembles a self-installing flexiWAN flexiEdge image that provisions the open-source SD-WAN stack during installation. It combines the upstream flexiWAN repositories with Ubuntu Server autoinstall to deliver a reproducible router appliance.
 
+## Debian 13 branch
+
+Branch `debian-13` keeps the Focal autoinstall builder and adds a separate Debian 13 (Trixie) product ISO under `debian13/`. Build that image with `debian13/scripts/build-all.sh`. It does not reuse the Ubuntu 20.04 live ISO.
+
+The Trixie installer always shows the target-drive menu, including when only one disk is present, then the destroy warning. The extract gauge reads the squashfs size in Kbytes (not the byte field) and line-buffers updates, so it moves during extraction instead of jumping from 0 to 100. Installer logs go to `/tmp/flexiwan-install.log` only; they are not printed under the dialog.
+
 ## Prerequisites
 
 Run the bootstrap script once on the build host (Ubuntu/Debian recommended):

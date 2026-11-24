@@ -1,0 +1,23 @@
+flexiWAN END USER LICENSE AGREEMENT
+
+This End User License Agreement ("Agreement") is a legally binding agreement
+between you, either as an individual or on behalf of an entity ("You"), and
+flexiWAN ("We" or "Us"), regarding Your use of flexiWAN's flexiEdge and
+flexiManage software ("Software"). If You do not wish to be bound by the
+terms of this Agreement, do NOT install, use, or copy this Software. By
+accepting this Agreement, or installing, using, or copying the Software, You
+legally bind yourself to the terms of this Agreement.
+
+1. Definitions
+
+"Intellectual Property Rights" mean all intellectual property rights,
+whether registered or not, including, but not limited to, patents (as well
+as continuations and re-issuances), copyrights, design rights, trademarks,
+trade names, utility models, specifications, inventions, know-how, and any
+other intellectual property right in or related to the Software.
+
+2. The License
+
+Installing this image copies the bundled flexiEdge software onto the selected
+disk and erases existing data on that disk. Select <I Agree> to accept this
+Agreement and continue. Select <Cancel> to stop without changing the disk.

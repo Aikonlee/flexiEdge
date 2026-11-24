@@ -1,0 +1,17 @@
+[Unit]
+Description=flexiWAN Router
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/flexiwan/bin/flexiwan-agent
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/opt/flexiwan/src/flexiagent
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
