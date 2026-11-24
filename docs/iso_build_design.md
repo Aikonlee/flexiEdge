@@ -69,12 +69,12 @@ The autoinstall profile provisions an Ubuntu Server instance with the following 
     {"name": "flexirouter", "ref": "v21.01.03", "commit": "<sha>", "archive": "flexirouter.tar.gz", "remote": "https://github.com/Aikonlee/flexirouter.git"},
     {"name": "flexiroutervpp", "ref": "v26.02-rc0", "commit": "<sha>", "archive": "flexiroutervpp.tar.gz", "remote": "https://github.com/Aikonlee/flexiroutervpp.git"},
     {"name": "flexiroutersb", "ref": "v21.01.02.09.13-rc0", "commit": "<sha>", "archive": "flexiroutersb.tar.gz", "remote": "https://github.com/Aikonlee/flexiroutersb.git"},
-    {"name": "flexiwancharts", "ref": "master", "commit": "<sha>", "archive": "flexiwancharts.tar.gz", "remote": "https://github.com/Aikonlee/flexiwancharts.git"}
+    {"name": "flexiwancharts", "ref": "6.6.0", "commit": "<sha>", "archive": "flexiwancharts.tar.gz", "remote": "https://github.com/Aikonlee/flexiwancharts.git"}
   ]
 }
 ```
 
-When the installer runs without a bundled archive, `setup-flexiwan.sh` falls back to cloning the repository from its remote URL (checking out the pinned `ref` when configured: `FLEXIAGENT_REF=v6.6.0`, `flexirouter=v21.01.03`, `flexiroutervpp=v26.02-rc0`, `flexiroutersb=v21.01.02.09.13-rc0`, and `flexiwancharts=master` — charts pinned to `master` branch (no tags); build records the resolved commit SHA for audit). Because a branch ref is mutable, reproducibility for `flexiwancharts` relies on the recorded commit SHA in `manifest.json`, not the ref name. The manifest is also copied into `/etc/flexiwan/build-info.json` on the installed system for audit purposes. Note that the target flexiManage baseline remains `6.5.1` while flexiEdge and `flexiagent` are `6.6.0`, so compatibility must be validated by QEMU/E2E before release (see `docs/baseline-6.5.x.md`).
+When the installer runs without a bundled archive, `setup-flexiwan.sh` falls back to cloning the repository from its remote URL (checking out the pinned `ref` when configured: `FLEXIAGENT_REF=v6.6.0`, `flexirouter=v21.01.03`, `flexiroutervpp=v26.02-rc0`, `flexiroutersb=v21.01.02.09.13-rc0`, and `flexiwancharts=6.6.0` — pinned to annotated tag `6.6.0` created at commit `acc9f21abc1f09792f5a927254004de556f1e1d0`; build also records the resolved commit SHA in `manifest.json` for audit). The manifest is also copied into `/etc/flexiwan/build-info.json` on the installed system for audit purposes. Note that the target flexiManage baseline remains `6.5.1` while flexiEdge and `flexiagent` are `6.6.0`, so compatibility must be validated by QEMU/E2E before release (see `docs/baseline-6.5.x.md`).
 
 ## Recovery workflow
 

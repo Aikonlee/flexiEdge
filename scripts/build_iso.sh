@@ -71,14 +71,15 @@ done
 # Upstream flexiWAN repositories live on GitLab; our maintained mirrors are on GitHub.
 # Confirmed pins (see docs/baseline-6.5.x.md): flexiagent ($FLEXIAGENT_REF, default v6.6.0),
 # flexirouter (v21.01.03), flexiroutervpp (v26.02-rc0), flexiroutersb (v21.01.02.09.13-rc0),
-# and flexiwancharts (pinned to the master branch because no tags exist; branch refs are
-# mutable, so the resolved commit SHA is recorded in manifest.json at build time for audit).
+# and flexiwancharts (pinned to the newly created annotated tag 6.6.0 at commit
+# acc9f21abc1f09792f5a927254004de556f1e1d0; the resolved commit SHA is still recorded in
+# manifest.json at build time for audit).
 declare -a REPO_SOURCES=(
   "flexiagent|https://github.com/Aikonlee/flexiagent.git|$FLEXIAGENT_REF"
   "flexirouter|https://github.com/Aikonlee/flexirouter.git|v21.01.03"
   "flexiroutervpp|https://github.com/Aikonlee/flexiroutervpp.git|v26.02-rc0"
   "flexiroutersb|https://github.com/Aikonlee/flexiroutersb.git|v21.01.02.09.13-rc0"
-  "flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|master"
+  "flexiwancharts|https://github.com/Aikonlee/flexiwancharts.git|6.6.0"
 )
 
 [[ -n "$OUTPUT" ]] || OUTPUT="$DIST_DIR/flexiEdge.focal.$FLEXI_VERSION.iso"
