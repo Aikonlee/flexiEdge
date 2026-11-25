@@ -285,9 +285,24 @@ print("[02-build-rootfs] Patched vpp_api.py, vpp_papi_dummy.py, and fwutils.py c
 PY
 
 # Setup flexiagent config, empty token.txt, versions metadata, and CLI wrappers
-if [[ -f "$ROOTFS/opt/flexiwan/src/flexiagent/fwagent_conf.yaml" ]]; then
-  cp "$ROOTFS/opt/flexiwan/src/flexiagent/fwagent_conf.yaml" "$ROOTFS/etc/flexiwan/agent/fwagent_conf.yaml"
-fi
+AGENT_CONFIG="$ROOTFS/etc/flexiwan/agent/fwagent_conf.yaml"
+cp "$ROOTFS/opt/flexiwan/src/flexiagent/fwagent_conf.yaml" "$AGENT_CONFIG"
+python3 - "$AGENT_CONFIG" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+source = path.read_text(encoding="utf-8")
+sections = list(re.finditer(r"(?m)^agent:[ \t]*(?:#[^\n]*)?\n((?:[ \t]+[^\n]*\n?|\n)*)", source))
+if len(sections) != 1:
+    sys.exit("Expected exactly one agent configuration section")
+section = sections[0]
+body, count = re.subn(r"(?m)^  server:[^\n]*", '  server: "https://manage.miwide.com:3443"', section[1])
+if count != 1:
+    sys.exit("Expected exactly one agent.server setting")
+path.write_text(source[:section.start(1)] + body + source[section.end(1):], encoding="utf-8")
+PY
 
 cat <<EOF >"$ROOTFS/etc/flexiwan/agent/.versions.yaml"
 device: ${VERSION}
