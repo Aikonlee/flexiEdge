@@ -1,0 +1,13 @@
+[Unit]
+Description=flexiWAN Router UI
+After=network.target flexiwan-router.service
+
+[Service]
+WorkingDirectory=/usr/share/flexiwan/agent/edgeui/backend
+Environment=PYTHONPATH=/opt/flexiwan/src/flexiagent:/opt/flexiwan/src/flexiagent/tools/system_checker
+ExecStart=/opt/flexiwan/venv/bin/python /usr/share/flexiwan/agent/edgeui/backend/web_service.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
