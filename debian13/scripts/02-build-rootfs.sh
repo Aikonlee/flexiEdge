@@ -60,6 +60,11 @@ done
 
 PACKAGES=$(grep -vE '^\s*(#|$)' "$ROOT_DIR/config/target-packages.list" | tr '\n' ' ')
 
+if [[ -n ${EDGEUI_SOURCE:-} ]]; then
+  [[ -f "$EDGEUI_SOURCE/backend/web_service.py" && -f "$EDGEUI_SOURCE/client/index.html" ]] || { echo 'Invalid EDGEUI_SOURCE' >&2; exit 1; }
+  PACKAGES+=' python3-cherrypy3 python3-pam systemd-resolved'
+fi
+
 PACKAGES="$PACKAGES" chroot "$ROOTFS" /bin/bash -euo pipefail <<'CHROOT_EOF'
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
@@ -356,6 +361,10 @@ apt-get clean
 rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 truncate -s 0 /etc/machine-id
 CHROOT_VENV_EOF
+
+if [[ -n ${EDGEUI_SOURCE:-} ]]; then
+  bash "$ROOT_DIR/scripts/install-edgeui.sh" "$ROOTFS" "$EDGEUI_SOURCE"
+fi
 
 cleanup_mounts
 
