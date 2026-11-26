@@ -396,6 +396,12 @@ if [[ -n ${EDGEUI_SOURCE:-} ]]; then
   bash "$ROOT_DIR/scripts/install-edgeui.sh" "$ROOTFS" "$EDGEUI_SOURCE"
 fi
 
+# The Agent owns vRouter startup and recovery. Do not boot bare VPP.
+systemctl --root="$ROOTFS" disable vpp.service
+vpp_state=$(systemctl --root="$ROOTFS" is-enabled vpp.service || true)
+[[ "$vpp_state" == disabled ]] || { echo "Unexpected VPP unit state: $vpp_state" >&2; exit 1; }
+systemctl --root="$ROOTFS" is-enabled --quiet flexiwan-router.service
+
 cleanup_mounts
 
 ln -sfn /run/systemd/resolve/stub-resolv.conf "$ROOTFS/etc/resolv.conf"
