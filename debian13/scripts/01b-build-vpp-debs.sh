@@ -64,28 +64,114 @@ chroot "$BUILD_ROOTFS" /bin/bash -euo pipefail -c '
   cd /build/vpp
   # Install upstream VPP build deps if supported on trixie
   make install-dep || true
+  export CFLAGS="${CFLAGS:+${CFLAGS} }-DFLEXIWAN_FEATURE"
+  export CXXFLAGS="${CXXFLAGS:+${CXXFLAGS} }-DFLEXIWAN_FEATURE"
+  echo "[01b-build-vpp] Build flags: CFLAGS=${CFLAGS} CXXFLAGS=${CXXFLAGS}"
   make pkg-deb
 '
 
-echo "[01b-build-vpp] Copying built .deb packages to $OUT_DEBS..."
+echo "[01b-build-vpp] Running build gates on generated .deb packages..."
 DEB_DIR="$BUILD_ROOTFS/build/vpp/build-root"
 shopt -s nullglob
+vpp_debs=("$DEB_DIR"/vpp_*.deb)
+if (( ${#vpp_debs[@]} != 1 )); then
+  echo '[01b-build-vpp] ERROR: Expected one vpp package.' >&2
+  exit 1
+fi
 core_debs=("$DEB_DIR"/vpp-plugin-core_*.deb)
 if (( ${#core_debs[@]} != 1 )); then
   echo '[01b-build-vpp] ERROR: Expected one vpp-plugin-core package.' >&2
   exit 1
 fi
-dpkg-deb -c "${core_debs[0]}" | grep '/vpp_plugins/router_plugin\.so$' >/dev/null || {
-  echo '[01b-build-vpp] ERROR: Built package is missing router_plugin.so.' >&2
-  exit 1
-}
+
 plugin_check=$(mktemp -d)
-dpkg-deb -x "${core_debs[0]}" "$plugin_check"
-router_plugin=$(find "$plugin_check" -type f -name router_plugin.so -print -quit)
-if [[ -z "$router_plugin" ]] || ! grep -aF 'tap-inject enable-ip4-output interface' "$router_plugin" >/dev/null; then
-  echo '[01b-build-vpp] ERROR: router plugin lacks the required WAN TAP output CLI.' >&2
+mkdir -p "$plugin_check/vpp" "$plugin_check/core"
+dpkg-deb -x "${vpp_debs[0]}" "$plugin_check/vpp"
+dpkg-deb -x "${core_debs[0]}" "$plugin_check/core"
+
+# Gate 1: VPP core API JSON must contain flexiWAN interface flags extension.
+api_json=""
+for candidate in \
+  "$plugin_check/vpp/usr/share/vpp/api/core/interface.api.json" \
+  "$plugin_check/core/usr/share/vpp/api/core/interface.api.json"; do
+  if [[ -f "$candidate" ]]; then
+    api_json="$candidate"
+    break
+  fi
+done
+if [[ -z "$api_json" ]]; then
+  echo '[01b-build-vpp] ERROR: Built vpp/vpp-plugin-core deb is missing usr/share/vpp/api/core/interface.api.json.' >&2
   exit 1
 fi
+if ! grep -q 'flexiwan_flags' "$api_json"; then
+  echo "[01b-build-vpp] ERROR: $api_json is missing required 'flexiwan_flags' API extension." >&2
+  exit 1
+fi
+if ! grep -q 'vl_api_if_flexiwan_flags_t' "$api_json"; then
+  echo "[01b-build-vpp] ERROR: $api_json is missing required 'vl_api_if_flexiwan_flags_t' API type." >&2
+  exit 1
+fi
+
+# Gate 2: vpp-plugin-core must ship router.so with symlinks router.so.0 and router.so.0.0.0.
+router_so=$(find "$plugin_check/core" -path '*/vpp_plugins/router.so' -print -quit)
+if [[ -z "$router_so" ]]; then
+  router_plugin_only=$(find "$plugin_check/core" -path '*/vpp_plugins/router_plugin.so' -print -quit)
+  if [[ -n "$router_plugin_only" ]]; then
+    echo '[01b-build-vpp] ERROR: Only router_plugin.so found in vpp-plugin-core; expected router.so with symlinks router.so.0 and router.so.0.0.0.' >&2
+  else
+    echo '[01b-build-vpp] ERROR: Built vpp-plugin-core package is missing vpp_plugins/router.so.' >&2
+  fi
+  exit 1
+fi
+
+plugin_dir=$(dirname "$router_so")
+router_so_0="$plugin_dir/router.so.0"
+router_so_000="$plugin_dir/router.so.0.0.0"
+
+if [[ ! -e "$router_so" || ! -f "$router_so" ]]; then
+  echo '[01b-build-vpp] ERROR: vpp_plugins/router.so is not a valid readable file (or is a dangling symlink).' >&2
+  exit 1
+fi
+if [[ ! -e "$router_so_0" || ! -e "$router_so_000" ]]; then
+  echo '[01b-build-vpp] ERROR: Missing required symlinks router.so.0 and/or router.so.0.0.0 alongside router.so.' >&2
+  exit 1
+fi
+
+symlink_count=0
+for entry in "$router_so" "$router_so_0" "$router_so_000"; do
+  if [[ -L "$entry" ]]; then
+    symlink_count=$((symlink_count + 1))
+  fi
+done
+if (( symlink_count < 2 )); then
+  echo '[01b-build-vpp] ERROR: Expected router.so with symlinks router.so.0 and router.so.0.0.0 (found fewer than 2 symlinks).' >&2
+  exit 1
+fi
+
+router_real=$(readlink -f "$router_so")
+router_real_0=$(readlink -f "$router_so_0")
+router_real_000=$(readlink -f "$router_so_000")
+if [[ -z "$router_real" || "$router_real" != "$router_real_0" || "$router_real" != "$router_real_000" ]]; then
+  echo '[01b-build-vpp] ERROR: router.so, router.so.0, and router.so.0.0.0 do not resolve to the same target file.' >&2
+  exit 1
+fi
+
+# Gate 3: router.so must contain VPP plugin registration and tap-inject CLI text.
+router_strings="$plugin_check/router.strings"
+strings "$router_real" > "$router_strings"
+if ! grep -qF 'vlib_plugin_registration' "$router_strings"; then
+  echo '[01b-build-vpp] ERROR: router.so lacks required vlib_plugin_registration symbol/text.' >&2
+  exit 1
+fi
+if ! grep -qF 'tap-inject enable-ip4-output interface' "$router_strings"; then
+  echo '[01b-build-vpp] ERROR: router.so lacks required tap-inject CLI text (tap-inject enable-ip4-output interface).' >&2
+  exit 1
+fi
+
+echo "[01b-build-vpp] Build gates passed. Checked artifact SHA256 checksums:"
+sha256sum "$api_json" "$router_so" "$router_real" "${vpp_debs[0]}" "${core_debs[0]}"
+
+echo "[01b-build-vpp] Copying built .deb packages to $OUT_DEBS..."
 for pkg in libvppinfra vpp vpp-plugin-core vpp-plugin-dpdk python3-vpp-api; do
   files=("$DEB_DIR"/"${pkg}"_*.deb)
   (( ${#files[@]} == 1 )) || { echo "[01b-build-vpp] ERROR: Expected one $pkg package." >&2; exit 1; }

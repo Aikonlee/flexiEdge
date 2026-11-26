@@ -26,3 +26,11 @@ add_vpp_plugin(router
   router/tap_inject_node.c
   router/tap_inject_tap.c
 )
+
+set_target_properties(router_plugin PROPERTIES
+  PREFIX ""
+  OUTPUT_NAME router
+  NO_SONAME 0
+  SOVERSION 0
+  VERSION 0.0.0
+)

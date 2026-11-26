@@ -1320,9 +1320,9 @@ vl_api_create_loopback_t_handler (vl_api_create_loopback_t * mp)
 
 #ifdef FLEXIWAN_FEATURE /* configurable interface exposure to VPPSB */
   vnet_interface_setup_flags_t setup_flags = 0;
-  if ((ntohl (mp->setup_flags)) & IF_API_FLEXIWAN_FLAG_NO_VPPSB)
+  if ((ntohl (mp->flexiwan_flags)) & IF_API_FLEXIWAN_FLAG_NO_VPPSB)
     setup_flags |= VNET_INTERFACE_FLEXIWAN_FLAG_NO_VPPSB;
-  if ((ntohl (mp->setup_flags)) & IF_API_FLEXIWAN_FLAG_VPPSB_TUN)
+  if ((ntohl (mp->flexiwan_flags)) & IF_API_FLEXIWAN_FLAG_VPPSB_TUN)
     setup_flags |= VNET_INTERFACE_FLEXIWAN_FLAG_VPPSB_TUN;
 #endif /* FLEXIWAN_FEATURE */
 
@@ -1349,9 +1349,9 @@ static void vl_api_create_loopback_instance_t_handler
 
 #ifdef FLEXIWAN_FEATURE
   vnet_interface_setup_flags_t setup_flags = 0;
-  if ((ntohl (mp->setup_flags)) & IF_API_FLEXIWAN_FLAG_NO_VPPSB)
+  if ((ntohl (mp->flexiwan_flags)) & IF_API_FLEXIWAN_FLAG_NO_VPPSB)
     setup_flags |= VNET_INTERFACE_FLEXIWAN_FLAG_NO_VPPSB;
-  if ((ntohl (mp->setup_flags)) & IF_API_FLEXIWAN_FLAG_VPPSB_TUN)
+  if ((ntohl (mp->flexiwan_flags)) & IF_API_FLEXIWAN_FLAG_VPPSB_TUN)
     setup_flags |= VNET_INTERFACE_FLEXIWAN_FLAG_VPPSB_TUN;
 #endif /* FLEXIWAN_FEATURE */
 
