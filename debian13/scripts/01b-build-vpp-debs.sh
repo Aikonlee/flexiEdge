@@ -34,7 +34,7 @@ for fs in dev dev/pts proc sys run; do
 done
 
 mkdir -p "$BUILD_ROOTFS/build" "$OUT_DEBS"
-rsync -a --delete --exclude='.git' --exclude='/build-root/' "$WORK_DIR/repos/flexiRouterVPP/" "$BUILD_ROOTFS/build/vpp/"
+rsync -a --delete --exclude='/build-root/' "$WORK_DIR/repos/flexiRouterVPP/" "$BUILD_ROOTFS/build/vpp/"
 rsync -a --delete --exclude='.git' "$WORK_DIR/repos/flexiRouterSB/" "$BUILD_ROOTFS/build/vppsb/"
 
 # Integrate the sideband plugin before VPP discovers its plugin targets.
