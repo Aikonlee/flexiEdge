@@ -24,7 +24,18 @@ trap 'rm -f "$TMP_ENTRIES"' EXIT
 for entry in "${REPOS[@]}"; do
   IFS='|' read -r name url <<<"$entry"
   dest="$SRC_DIR/$name"
-  if [[ -d "$dest/.git" ]]; then
+  pin=
+  case "$name" in
+    flexiRouterVPP) pin=4c3b404f58f8c95d0617233472079a3e5f4ce782 ;;
+    flexiRouterSB) pin=6beeae659fc50cfb1a8ba7c5c2413d59d8b6e073 ;;
+  esac
+  if [[ -n "$pin" ]]; then
+    if [[ ! -d "$dest/.git" ]]; then git init "$dest"; fi
+    if ! git -C "$dest" cat-file -e "$pin^{commit}" 2>/dev/null; then
+      git -C "$dest" fetch --depth 1 "$url" "$pin"
+    fi
+    git -C "$dest" checkout --detach "$pin"
+  elif [[ -d "$dest/.git" ]]; then
     echo "[01-fetch] Updating $name..."
     if git -C "$dest" fetch --depth 1 origin; then
       git -C "$dest" reset --hard origin/HEAD || true

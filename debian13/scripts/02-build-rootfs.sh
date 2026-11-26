@@ -171,11 +171,26 @@ if compgen -G "$ROOT_DIR/cache/packages/*.deb" >/dev/null; then
     echo "[02-build-rootfs] ERROR: VPP API JSON was not installed. Refusing to pack a dummy-VPP image." >&2
     exit 1
   fi
+  if ! find "$ROOTFS/usr/lib" -type f -path '*/vpp_plugins/router_plugin.so' -print -quit | grep -q .; then
+    echo '[02-build-rootfs] ERROR: Missing flexiRouterSB router_plugin.so; TAP injection is required.' >&2
+    exit 1
+  fi
   chroot "$ROOTFS" /bin/bash -euo pipefail -c "python3 -c 'import vpp_papi; print(vpp_papi.__file__)'"
 else
   echo "[02-build-rootfs] ERROR: cache/packages has no VPP .deb files. Production ISO requires them." >&2
   exit 1
 fi
+
+# Preserve the physical NIC MAC assigned by the sideband plugin.
+install -d "$ROOTFS/etc/systemd/network"
+cat > "$ROOTFS/etc/systemd/network/05-flexiedge-vpp-tap.link" <<'EOF'
+[Match]
+Driver=tun
+OriginalName=vpp[0-9]*
+
+[Link]
+MACAddressPolicy=none
+EOF
 
 # Stage VPP default startup.conf and backups if present
 if [[ -f "$ROOTFS/opt/flexiwan/src/flexiRouter/scripts/startup.conf" ]]; then
