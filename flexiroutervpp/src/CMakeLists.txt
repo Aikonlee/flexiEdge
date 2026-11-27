@@ -58,7 +58,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${VPP_RUNTIME_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${VPP_LIBRARY_DIR})
 
 if (CMAKE_BUILD_TYPE)
-  set(CMAKE_C_FLAGS "-g -fPIC -Werror -Wall ${CMAKE_C_FLAGS}")
+  set(CMAKE_C_FLAGS "-g -fPIC -Wno-error -Wall ${CMAKE_C_FLAGS}")
 endif()
 
 if (compiler_flag_no_address_of_packed_member)
