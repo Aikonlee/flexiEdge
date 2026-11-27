@@ -208,8 +208,8 @@ vlib_log (vlib_log_level_t level, vlib_log_class_t class, char *fmt, ...)
 	  int prio = log_level_to_syslog_priority[level];
 	  int is_term = vec_c_string_is_terminated (l) ? 1 : 0;
 
-	  syslog (prio, "%.*s: %.*s", (int) vec_len (l), l,
-		  (int) vec_len (s) - is_term, s);
+	  syslog (prio, "%.*s: %.*s", (int) vec_len (l), l ? l : "",
+		  (int) vec_len (s) - is_term, s ? s : "");
 	}
       vec_free (l);
     }
