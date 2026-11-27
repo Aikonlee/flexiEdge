@@ -3754,7 +3754,7 @@ api_create_loopback (vat_main_t * vam)
   u8 is_specified = 0;
   u32 user_instance = 0;
 #ifdef FLEXIWAN_FEATURE
-  vl_api_if_setup_flags_t setup_flags = 0;
+  vl_api_if_flexiwan_flags_t setup_flags = 0;
 #endif /* FLEXIWAN_FEATURE */
   int ret;
 
@@ -3781,7 +3781,7 @@ api_create_loopback (vat_main_t * vam)
       M (CREATE_LOOPBACK_INSTANCE, mp_lbi);
       mp_lbi->is_specified = is_specified;
 #ifdef FLEXIWAN_FEATURE /* configurable interface exposure to VPPSB */
-      mp_lbi->setup_flags = htonl (setup_flags);
+      mp_lbi->flexiwan_flags = htonl (setup_flags);
 #endif /* FLEXIWAN_FEATURE */
       if (is_specified)
 	mp_lbi->user_instance = htonl (user_instance);
@@ -3794,7 +3794,7 @@ api_create_loopback (vat_main_t * vam)
       /* Construct the API message */
       M (CREATE_LOOPBACK, mp);
 #ifdef FLEXIWAN_FEATURE /* configurable interface exposure to VPPSB */
-      mp->setup_flags = htonl (setup_flags);
+      mp->flexiwan_flags = htonl (setup_flags);
 #endif /* FLEXIWAN_FEATURE */
       if (mac_set)
 	clib_memcpy (mp->mac_address, mac_address, sizeof (mac_address));
