@@ -454,6 +454,18 @@ def add_remove_netplan_interface(is_add, dev_id, ip, gw, metric, dhcp, type, dns
     old_ifname = ''
     ifname = if_name if if_name else fwutils.dev_id_to_tap(dev_id)
     if not ifname:
+        dev_id_full = fwutils.dev_id_to_full(dev_id)
+        if fwutils.dev_id_parse(dev_id_full)[0] == 'pci':
+            sw_if_index = fwutils.dev_id_to_vpp_sw_if_index(dev_id_full, verbose=False)
+            if sw_if_index is not None:
+                ifname = fwutils.vpp_sw_if_index_to_tap(sw_if_index)
+            if not ifname and (sw_if_index is not None or fwutils.is_interface_assigned_to_vpp(dev_id_full)):
+                # A DPDK-bound PCI interface may be waiting for VPP tap-inject.
+                fwglobals.log.warning(
+                    f"add_remove_netplan_interface: no VPP tap for {dev_id}; skipping netplan update")
+                return (True, '')
+
+    if not ifname:
         err_str = "add_remove_netplan_interface: %s was not found" % dev_id
         fwglobals.log.error(err_str)
         return (False, err_str)
