@@ -43,13 +43,6 @@ mkdir -p "$PLUGIN_SRC/router" "$PLUGIN_SRC/netlink/librtnl"
 rsync -a "$BUILD_ROOTFS/build/vppsb/router/" "$PLUGIN_SRC/router/"
 rsync -a "$BUILD_ROOTFS/build/vppsb/netlink/librtnl/" "$PLUGIN_SRC/netlink/librtnl/"
 
-# Debian installs libnl headers in a non-default include directory.
-cat >> "$PLUGIN_SRC/router/CMakeLists.txt" <<'CMAKE'
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(ROUTER_LIBNL REQUIRED IMPORTED_TARGET libnl-route-3.0)
-target_link_libraries(router_plugin PkgConfig::ROUTER_LIBNL)
-CMAKE
-
 echo "[01b-build-vpp] Installing VPP build dependencies and compiling .deb packages..."
 chroot "$BUILD_ROOTFS" /bin/bash -euo pipefail -c '
   export DEBIAN_FRONTEND=noninteractive
@@ -67,6 +60,8 @@ chroot "$BUILD_ROOTFS" /bin/bash -euo pipefail -c '
   export CFLAGS="${CFLAGS:+${CFLAGS} }-DFLEXIWAN_FEATURE"
   export CXXFLAGS="${CXXFLAGS:+${CXXFLAGS} }-DFLEXIWAN_FEATURE"
   echo "[01b-build-vpp] Build flags: CFLAGS=${CFLAGS} CXXFLAGS=${CXXFLAGS}"
+  # Have debhelper preserve the ELF symbols in the packaged libraries.
+  export DEB_BUILD_OPTIONS="${DEB_BUILD_OPTIONS:+${DEB_BUILD_OPTIONS} }nostrip"
   make pkg-deb
 '
 
@@ -156,13 +151,24 @@ if [[ -z "$router_real" || "$router_real" != "$router_real_0" || "$router_real" 
   exit 1
 fi
 
-# Gate 3: router.so must contain VPP plugin registration and tap-inject CLI text.
-router_strings="$plugin_check/router.strings"
-strings "$router_real" > "$router_strings"
-if ! grep -qF 'vlib_plugin_registration' "$router_strings"; then
-  echo '[01b-build-vpp] ERROR: router.so lacks required vlib_plugin_registration symbol/text.' >&2
+# Gate 3: check defined dynamic exports and the shared netlink dependency.
+router_exports="$plugin_check/router.exports"
+router_dynamic="$plugin_check/router.dynamic"
+nm -D --defined-only "$router_real" > "$router_exports"
+for symbol in vlib_plugin_registration tap_inject_rx_node tap_inject_tx_node tap_inject_enable_netlink; do
+  if ! awk -v symbol="$symbol" '$NF == symbol { found = 1 } END { exit !found }' "$router_exports"; then
+    echo "[01b-build-vpp] ERROR: router.so lacks required dynamic export '$symbol'." >&2
+    exit 1
+  fi
+done
+LC_ALL=C readelf -d "$router_real" > "$router_dynamic"
+if ! grep -Eq '\(NEEDED\).*\[librtnl\.so\.0\]$' "$router_dynamic"; then
+  echo '[01b-build-vpp] ERROR: router.so lacks required DT_NEEDED entry librtnl.so.0.' >&2
   exit 1
 fi
+
+router_strings="$plugin_check/router.strings"
+strings "$router_real" > "$router_strings"
 if ! grep -qF 'tap-inject enable-ip4-output interface' "$router_strings"; then
   echo '[01b-build-vpp] ERROR: router.so lacks required tap-inject CLI text (tap-inject enable-ip4-output interface).' >&2
   exit 1
