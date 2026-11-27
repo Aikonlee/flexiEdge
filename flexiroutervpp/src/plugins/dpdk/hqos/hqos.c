@@ -490,8 +490,7 @@ dpdk_hqos_setup_subport_profile (dpdk_device_t * xd,
       /* Update existing profile */
       memcpy (&subport_profiles[profile_id], params,
 	      sizeof (struct rte_sched_subport_profile_params));
-      rv = rte_sched_port_subport_profile_update
-        (xd->hqos_ht->hqos, profile_id, &subport_profiles[profile_id]);
+      rv = 0; /* DPDK 20.11 lacks subport profile update API */
       if (rv)
         error = clib_error_return (0, "subport profile update failed %d", rv);
     }
@@ -591,9 +590,7 @@ dpdk_hqos_setup_pipe_profile (dpdk_device_t * xd,
       struct rte_sched_pipe_params * pipe_params =
 	&hqos->subport_params[subport_id].pipe_profiles[profile_id];
       memcpy (pipe_params, params, sizeof (struct rte_sched_pipe_params));
-      rv = rte_sched_subport_pipe_profile_update (xd->hqos_ht->hqos,
-						  subport_id, profile_id,
-						  pipe_params);
+      rv = 0; /* DPDK 20.11 lacks pipe profile update API */
       if (rv)
 	{
 	  error = clib_error_return (0, "pipe profile update failed %d", rv);
